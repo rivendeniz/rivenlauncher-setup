@@ -1,0 +1,56 @@
+name: Riven Setup.exe olustur
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Paketleri kur
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+
+      - name: RivenLauncher.exe derle
+        run: python -m PyInstaller --noconfirm --clean RivenLauncher.spec
+
+      - name: Inno Setup hazirla
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+
+      - name: Surumu riven.py'den oku
+        id: ver
+        shell: pwsh
+        run: |
+          $m = Select-String -Path riven.py -Pattern '^APP_VERSION = "([\d\.]+)"'
+          $v = $m.Matches[0].Groups[1].Value
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Setup.exe olustur
+        shell: pwsh
+        run: '& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /DAppVersion=${{ steps.ver.outputs.version }} installer.iss'
+
+      - name: GitHub Release yayinla (launcher otomatik guncellenir)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Riven Launcher ${{ steps.ver.outputs.version }}
+          files: installer/RivenLauncher-Setup.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RivenLauncher-Setup
+          path: installer/RivenLauncher-Setup.exe
