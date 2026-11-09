@@ -54,7 +54,7 @@ except ImportError:  # keyring yoksa Microsoft oturumu hatırlanmaz
     keyring = None
 
 APP = "Riven Launcher"
-APP_VERSION = "1.3.1"
+APP_VERSION = "1.3.2"
 # Otomatik güncelleme: GitHub "kullanici/depo" adını yaz (ör. "riven/RivenLauncher").
 # Boş bırakırsan otomatik güncelleme kapalı kalır. Depo herkese açık (public) olmalı.
 UPDATE_REPO = "rivendeniz/rivenlauncher-setup"
